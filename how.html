@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>DeMakeup</title>
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="index.html" class="navbar-brand">DeMakeup</a>
+            </div>
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li><a href="how.html">How it Works</a></li>
+				</ul>
+			</div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+		<br>
+		<br>
+		<br>
+		<h2>How it Works</h2>
+
+		<p>
+		Machine learning can perform many tasks at super-human level.
+		<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4100743/">In one work,</a> the researchers applied
+		machine learning to recognise DISGUISED FACES and achieved human level performance.
+		A <a href="https://www.wired.com/2016/09/machine-learning-can-identify-pixelated-faces-researchers-show/">very recent work</a> suggests that AI can recognise human faces even when they are pixelated.
+		Well then, why not apply the immense power of machine learning to remove cosmetics?
+		</p>
+
+		<p>
+		A dataset had been made for the machine to learn from.
+		It was created by collecting faces without makeup then applying
+		filters to virtually apply cosmetics on them (There are many apps for that purpose).
+		After that, the job of the machine is to figure out how to do the reverse direction work.
+		Currently, the dataset consists of 364 images.
+		(This is a TINY dataset, I had to do all the work by myself!)
+		In most of the images, smokey eye makeup style had been applied.
+		Hence the current version of this DeMakeup is best trained to remove makeup in such style.
+		</p>
+
+		<p>
+			This work is powered by
+			<a href="https://keras.io/">Keras</a> and
+			<a href="https://transcranial.github.io/keras-js/">Keras.js</a>.
+		</p>
+        <hr />
+        <footer>
+            <p>2016, John Doe</p>
+        </footer>
+    </div>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>DeMakeup</title>
+	<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="index.html" class="navbar-brand">DeMakeup</a>
+            </div>
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li><a href="how.html">How it Works</a></li>
+				</ul>
+			</div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+
+		<div class="jumbotron">
+			<h1>DeMakeup - da makeup remover</h1>
+			<p class="lead">Finally, machine learning for MEN!<br/>
+			Select a photo in square size, with face cropped:<br/>
+			(Nothing will be uploaded to the server, your browser will do all the work.)
+			</p>
+		</div>
+
+		<div id="preview" class="row text-center">
+			<!-- Image will be inserted here -->
+			<canvas id="input-canvas" width="64" height="64"></canvas>
+			<canvas id="output-canvas" width="64" height="64"></canvas>
+		</div>
+		<br>
+
+		<div class="row text-center">
+			<form action="" method="POST" enctype="multipart/form-data">
+				<label class="file">
+					<input id="tgt" type="file" name="file">
+					<span class="file-custom"></span>
+				</label>
+				<!-- <button type="submit" class="btn btn-primary">Run DeMakeup!</button> -->
+			</form>
+		</div>
+
+        <hr />
+        <footer>
+            <p>2016, John Doe</p>
+        </footer>
+    </div>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+	<!-- acceleration and keras -->
+	<script src="lib/weblas.js"></script>
+	<script src="dist/keras.js"></script>
+	<script src="spin.min.js"></script>
+	<script src="demakeup.js"></script>
+	<script type="text/javascript">
+	// Hook tgt
+	$( "#tgt" ).change(function()
+		{
+			//console.log( "photo change" )
+			renderImage(this.files[0]);
+	});
+	</script>
+
+
+</body>
+</html>
