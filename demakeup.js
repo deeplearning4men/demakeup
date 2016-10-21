@@ -114,13 +114,15 @@ function runModel( ctx )
 
     var flat = flatten(imageData);
 
+	var gpu = document.getElementById('gpu');
+
     var model = new KerasJS.Model({
       filepaths: {
         model: 'model.json',
         weights: 'model_weights.buf',
         metadata: 'model_metadata.json'
       },
-      gpu: true
+      gpu: gpu.checked
     });
 
     model.ready().then( () => {
