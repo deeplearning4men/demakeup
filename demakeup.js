@@ -1,5 +1,3 @@
-var STRIDE = 32;
-var TILE_SZ = 64;
 var SZ = 128;
 
 function renderImage(file)
@@ -12,6 +10,8 @@ function renderImage(file)
         var img = new Image();
         img.onload = function() {
             var canvas = document.getElementById('input-canvas');
+            //canvas.style.width = "64px";
+            //canvas.style.height = "64px";
             var ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, SZ, SZ);
             runModel(ctx);
@@ -25,93 +25,21 @@ function renderImage(file)
 }
 
 
-
-function get_tile(u, v, data)
+function renderOutput( outputData )
 {
-    var flat = new Float32Array(3 * TILE_SZ * TILE_SZ);
-    var p = 0;
-    for (var i = 0 ; i < TILE_SZ ; i++)
-    {
-        for (var j = 0 ; j < TILE_SZ ; j++)
-        {
-            var y = u + i;
-            var x = v + j;
-            var start = 4 * (y*SZ + x);
-            flat[p++] = data[start + 0] / 255;
-            flat[p++] = data[start + 1] / 255;
-            flat[p++] = data[start + 2] / 255;
-        }
-    }
-    return flat;
-}
+    var data = outputData[ 'convolution2d_11' ];
 
-// counter: overlap counter
-// data: data we want to make
-// tile: tile input to accumulate
-// u, v: defines where in data the tile data is accumulated.
-function accumulate_output(counter, data, tile, u, v)
-{
-    var p = 0;
-    for (var i = 0 ; i < TILE_SZ ; i++)
-    {
-        for (var j = 0 ; j < TILE_SZ ; j++)
-        {
-            var y = u + i;
-            var x = v + j;
-            var start = 4 * (y*SZ + x);
-            data[start] += tile[p++];
-            data[start + 1] += tile[p++];
-            data[start + 2] += tile[p++];
-            data[start + 3] = 255; // alpha channel
-
-            counter[start + 0] += 1;
-            counter[start + 1] += 1;
-            counter[start + 2] += 1;
-            counter[start + 3] = 1; // alpha channel
-        }
-    }
-}
-
-
-
-function renderOutput(outputs)
-{
     // The input is in RGB, not RGBA.
     // Need to draw manually.
     var ctx = document.getElementById('output-canvas').getContext('2d');
     var imageData = ctx.createImageData(SZ, SZ);
-
-    // overlapping region counter
-    var counter = new Float32Array(4 * SZ * SZ);
-    var data = new Float32Array(4 * SZ * SZ); // rgba
-    for (var i = 0 ; i < counter.length ; i++)
+    var j = 0;
+    for (var i = 0 ; i < 3*SZ*SZ ; i += 3)
     {
-        counter[i] = 0;
-        data[i] = 0;
-    }
-
-    // accumulate each tile to data. do counting too.
-    // ... to average 'em later.
-    var tile_index = 0;
-    for (var i = 0 ; i <= SZ - TILE_SZ ; i += STRIDE)
-    {
-        for (var j = 0 ; j <= SZ - TILE_SZ ; j += STRIDE)
-        {
-            var tile = outputs[tile_index];
-            accumulate_output(counter, data, tile, i, j);
-            tile_index++;
-        }
-    }
-
-    // Time to average for good looking merge.
-    for (var i = 0 ; i < data.length ; i++)
-    {
-        data[i] /= counter[i];
-    }
-
-    for (var i = 0 ; i < data.length ; i++)
-    {
-        imageData.data[i] = 255*data[i];
+        imageData.data[ j++ ] = 255 * data[ i+0 ];
+        imageData.data[ j++ ] = 255 * data[ i+1 ];
+        imageData.data[ j++ ] = 255 * data[ i+2 ];
+        imageData.data[ j++ ] = 255;
     }
     ctx.putImageData(imageData, 0, 0);
 
@@ -122,31 +50,21 @@ function renderOutput(outputs)
 
 
 
-function resizeImages()
+function flatten( imageData )
 {
-    // SZ x SZ is not too good to see.
-    //document.getElementById('output-canvas').style.width = "256px";
-    //document.getElementById('input-canvas').style.width = "256px";
-    // Nah, no resize.
-}
+	var data = imageData.data;
 
-
-
-function split_tiles(imageData)
-{
-    var data = imageData.data;
-    var flat_tiles = new Array();
-
-    for (var i = 0 ; i <= SZ - TILE_SZ ; i += STRIDE)
+    var flat = new Float32Array(3 * SZ * SZ);
+    var j = 0;
+    for(var i=0 ; i < data.length ; i += 4)
     {
-        for (var j = 0 ; j <= SZ - TILE_SZ ; j += STRIDE)
-        {
-            var tile = get_tile(i, j, data);
-            flat_tiles.push(tile);
-        }
+        flat[j++] = data[i + 0] / 255;
+        flat[j++] = data[i + 1] / 255;
+        flat[j++] = data[i + 2] / 255;
+        // And, don't copy alpha channel.
     }
 
-    return flat_tiles;
+    return flat;
 }
 
 
@@ -182,14 +100,14 @@ function showSpin()
 
 
 
-function runModel(ctx)
+function runModel( ctx )
 {
-    var imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+	var imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
     var spinner = showSpin();
 
-    var flat_tiles = split_tiles(imageData);
+    var flat = flatten(imageData);
 
-    var gpu = document.getElementById('gpu');
+	var gpu = document.getElementById('gpu');
 
     var model = new KerasJS.Model({
       filepaths: {
@@ -200,35 +118,15 @@ function runModel(ctx)
       gpu: gpu.checked
     });
 
-    model.ready().then(() => {
-        var jobid = 0;
-        var outputs = new Array(flat_tiles.length);
+    model.ready().then( () => {
+        var inputData = {
+            'input_1': flat
+        };
 
-        function next()
-        {
-            if (jobid < flat_tiles.length)
-            {
-                var inputData = {
-                    'input_1': flat_tiles[jobid]
-                };
-
-                model.predict(inputData).then(outputData => {
-                    // Draw onto output canvas.
-                    spinner.stop();
-                    var data = outputData['convolution2d_11'];
-                    outputs[jobid] = data;
-                    jobid++;
-                    next(); // do some weird recursion to run the job in sequence.
-                });
-
-            }
-            else
-            {
-                renderOutput(outputs);
-                //resizeImages();
-            }
-        }
-
-        next();
+        model.predict(inputData).then(outputData => {
+            // Draw onto output canvas.
+            spinner.stop();
+            renderOutput(outputData);
+        });
     });
 }
